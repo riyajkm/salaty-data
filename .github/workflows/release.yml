@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package data
+        run: zip -j "salaty-data-${GITHUB_REF_NAME}.zip" data/prayer_times.json data/zone_*.csv
+      - name: Extract changelog notes
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          awk -v v="$V" 'index($0, "## [" v "]")==1 {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "See CHANGELOG.md" > notes.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            data/prayer_times.json
+            salaty-data-${{ github.ref_name }}.zip
+          body_path: notes.md

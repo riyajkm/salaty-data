@@ -1,0 +1,7 @@
+# Source PDFs are ACJU's publications; keep them local, do not redistribute.
+prayer times/
+*.pdf
+.venv/
+__pycache__/
+*.pyc
+.DS_Store

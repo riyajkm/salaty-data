@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev, stage, main]
+  pull_request:
+    branches: [dev, stage, main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -r requirements.txt
+      - run: python convert_acju.py --self-test
+      - name: Validate data files
+        run: |
+          python - <<'PY'
+          import json, csv, glob
+          d = json.load(open('data/prayer_times.json', encoding='utf-8'))
+          regions = d['regions']
+          assert len(regions) == 13, f'expected 13 zones, got {len(regions)}'
+          for code, r in regions.items():
+              assert r['days'], f'zone {code} has no days'
+              for day, row in r['days'].items():
+                  for k in ('fajr','sunrise','dhuhr','asr','maghrib','isha'):
+                      assert row.get(k), f'zone {code} {day} missing {k}'
+          assert len(glob.glob('data/zone_*.csv')) == 13
+          print('data OK:', {c: len(r['days']) for c, r in regions.items()})
+          PY
