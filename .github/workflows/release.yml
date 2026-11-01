@@ -12,7 +12,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Package data
         run: zip -j "salaty-data-${GITHUB_REF_NAME}.zip" data/prayer_times.json data/zone_*.csv
       - name: Extract changelog notes
